@@ -197,11 +197,12 @@ export default function CamaraConcentracion({ activa = true }) {
   useEffect(() => {
     async function cargar() {
       try {
+        const CDN = "https://justadudewhohacks.github.io/face-api.js/weights";
         await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-          faceapi.nets.faceExpressionNet.loadFromUri("/models"),
-          faceapi.nets.faceLandmark68TinyNet.loadFromUri("/models"),
-        ]);
+        faceapi.nets.tinyFaceDetector.loadFromUri(CDN),
+        faceapi.nets.faceExpressionNet.loadFromUri(CDN),
+        faceapi.nets.faceLandmark68TinyNet.loadFromUri(CDN),
+]);
         setModelosCargados(true);
       } catch (e) {
         console.error("Error cargando modelos:", e);
