@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CamaraConcentracion from './CamaraConcentracion';
 
-// ─── Constantes Pomodoro ───
 const POMODORO_TRABAJO = 25 * 60;
 const POMODORO_DESCANSO = 5 * 60;
 
@@ -23,10 +22,6 @@ function formatTiempo(seg) {
   const m = Math.floor(seg / 60).toString().padStart(2, "0");
   const s = (seg % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
-}
-
-function getIpvColor(ipv) {
-  return ipv >= 80 ? estilos.verde : ipv >= 50 ? estilos.amarillo : estilos.rojo;
 }
 
 function guardarSesion(sesion) {
@@ -131,7 +126,7 @@ function PantallaObjetivo({ onIniciar }) {
   );
 }
 
-// ─── PANTALLA 2: Sala activa ───
+// ─── PANTALLA 2: Sala activa (SIN cámara aquí) ───
 function PantallaSala({ config, onFinalizar }) {
   const intervalTimer = useRef(null);
   const audioCtx = useRef(null);
@@ -166,7 +161,6 @@ function PantallaSala({ config, onFinalizar }) {
     } catch (e) {}
   }
 
-  // Timer Pomodoro
   useEffect(() => {
     if (pausado || terminado) return;
     intervalTimer.current = setInterval(() => {
@@ -221,16 +215,11 @@ function PantallaSala({ config, onFinalizar }) {
     <div style={{ width: "100%", maxWidth: 520 }}>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}`}</style>
 
-      {/* Cámara con detección de concentración */}
-      <CamaraConcentracion activa={!pausado} />
-
       {/* Timer + Pomodoro */}
       <div style={{
         background: estilos.bgCard, border: `1px solid ${estilos.border}`,
         borderRadius: 20, padding: 20, marginBottom: 16,
       }}>
-
-        {/* Badge de fase */}
         <div style={{ textAlign: "center", marginBottom: 16 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 6,
@@ -246,7 +235,6 @@ function PantallaSala({ config, onFinalizar }) {
             </span>
           </div>
 
-          {/* Timer */}
           <div style={{
             fontSize: 52, fontWeight: 900, letterSpacing: -2,
             color: fase === "trabajo" ? estilos.text : estilos.accent,
@@ -259,7 +247,6 @@ function PantallaSala({ config, onFinalizar }) {
           </div>
         </div>
 
-        {/* Barra progreso */}
         <div style={{ height: 6, background: estilos.accentSoft, borderRadius: 6, marginBottom: 16 }}>
           <div style={{
             height: "100%", width: `${progresoPom}%`,
@@ -270,7 +257,6 @@ function PantallaSala({ config, onFinalizar }) {
           }} />
         </div>
 
-        {/* Círculos pomodoros */}
         <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 16 }}>
           {Array.from({ length: config.pomodoros }).map((_, i) => {
             const completado = i < pomodoroActual - (fase === "descanso" ? 0 : 1);
@@ -288,7 +274,6 @@ function PantallaSala({ config, onFinalizar }) {
           })}
         </div>
 
-        {/* Botón pausar */}
         <button onClick={() => setPausado((p) => !p)} style={{
           width: "100%", padding: "12px", borderRadius: 10,
           background: pausado ? "linear-gradient(135deg, #4F8EF7, #7BB3FF)" : estilos.accentSoft,
@@ -300,7 +285,6 @@ function PantallaSala({ config, onFinalizar }) {
         </button>
       </div>
 
-      {/* Objetivo */}
       <div style={{
         background: estilos.bgCard, border: `1px solid ${estilos.border}`,
         borderRadius: 14, padding: "16px 18px",
@@ -319,7 +303,7 @@ function PantallaSala({ config, onFinalizar }) {
 // ─── PANTALLA 3: Reporte final ───
 function PantallaReporte({ reporte, onNuevaSesion }) {
   const navigate = useNavigate();
-  const { materia, objetivo, pomodorosCompletados, ipvGlobal, historialPomodoros, duracionMin } = reporte;
+  const { materia, objetivo, pomodorosCompletados, historialPomodoros, duracionMin } = reporte;
 
   return (
     <div style={{ width: "100%", maxWidth: 520 }}>
@@ -475,6 +459,14 @@ export default function SalaEstudio() {
           }}>← Inicio</button>
         </div>
       </div>
+
+      {/* CamaraConcentracion vive aquí — fuera de PantallaSala,
+          solo visible durante la sesión activa, nunca se re-monta por pausas */}
+      {vista === "sala" && config && (
+        <div style={{ width: "100%", maxWidth: 520 }}>
+          <CamaraConcentracion />
+        </div>
+      )}
 
       {vista === "objetivo" && <PantallaObjetivo onIniciar={(cfg) => { setConfig(cfg); setVista("sala"); }} />}
       {vista === "sala" && config && <PantallaSala config={config} onFinalizar={handleFinalizar} />}
