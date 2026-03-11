@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as faceapi from "face-api.js";
 
-const INTERVALO_MS = 2000;
-const MUESTRAS_PARA_CAMBIO = 3;
+const INTERVALO_MS = 1000;
+const MUESTRAS_PARA_CAMBIO = 2;
 const COOLDOWN_MENSAJE_MS = 30000;
 const EAR_FATIGA = 0.17;
 const PITCH_LECTURA = 20;
@@ -70,8 +70,10 @@ function calcularAngulos(landmarks) {
 
 function expresionDominante(expresiones) {
   if (!expresiones) return { nombre: "neutral", confianza: 0 };
-  return Object.entries(expresiones)
-    .map(([nombre, confianza]) => ({ nombre, confianza }))
+  const entries = Object.entries(expresiones);
+  const total = entries.reduce((sum, [, v]) => sum + v, 0);
+  return entries
+    .map(([nombre, confianza]) => ({ nombre, confianza: confianza / total }))
     .reduce((a, b) => b.confianza > a.confianza ? b : a);
 }
 
@@ -214,10 +216,13 @@ export default function CamaraConcentracion() {
         const resultado = await faceapi
           .detectSingleFace(
             videoRef.current,
-            new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.2 })
+            new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.15 })
           )
           .withFaceLandmarks(true)
           .withFaceExpressions();
+          if (resultado?.expressions) {
+  console.log("😶 expresiones:", JSON.stringify(resultado.expressions));
+}
 
         console.log("🔍", resultado ? "cara detectada" : "sin cara", "| videoW:", videoRef.current.videoWidth);
 
